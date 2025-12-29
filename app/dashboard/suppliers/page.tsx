@@ -1,0 +1,228 @@
+"use client"
+
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Plus, Search, Pencil, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { AddEditSupplierModal } from "@/components/add-edit-supplier-modal"
+import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal"
+
+type Supplier = {
+  id: string
+  name: string
+  contactPerson: string
+  email: string
+  phone: string
+  status: "Active" | "Inactive"
+}
+
+const initialSuppliers: Supplier[] = [
+  {
+    id: "1",
+    name: "TechHub Distributors",
+    contactPerson: "John Smith",
+    email: "john@techhub.com",
+    phone: "+1 (555) 123-4567",
+    status: "Active",
+  },
+  {
+    id: "2",
+    name: "Global Electronics Co.",
+    contactPerson: "Sarah Johnson",
+    email: "sarah@globalelec.com",
+    phone: "+1 (555) 234-5678",
+    status: "Active",
+  },
+  {
+    id: "3",
+    name: "Premium Supplies Ltd.",
+    contactPerson: "Mike Chen",
+    email: "mike@premiumsupplies.com",
+    phone: "+1 (555) 345-6789",
+    status: "Inactive",
+  },
+  {
+    id: "4",
+    name: "Accessory Masters",
+    contactPerson: "Emma Davis",
+    email: "emma@accessorymasters.com",
+    phone: "+1 (555) 456-7890",
+    status: "Active",
+  },
+]
+
+export default function SuppliersPage() {
+  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showAddEditModal, setShowAddEditModal] = useState(false)
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
+  const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(null)
+
+  const filteredSuppliers = suppliers.filter((supplier) =>
+    supplier.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  const handleEdit = (supplier: Supplier) => {
+    setEditingSupplier(supplier)
+    setShowAddEditModal(true)
+  }
+
+  const handleDelete = (supplier: Supplier) => {
+    setDeletingSupplier(supplier)
+  }
+
+  const confirmDelete = () => {
+    if (deletingSupplier) {
+      setSuppliers(suppliers.filter((s) => s.id !== deletingSupplier.id))
+      setDeletingSupplier(null)
+    }
+  }
+
+  const handleAddSupplier = () => {
+    setEditingSupplier(null)
+    setShowAddEditModal(true)
+  }
+
+  const handleSaveSupplier = (supplier: Omit<Supplier, "id">) => {
+    if (editingSupplier) {
+      setSuppliers(suppliers.map((s) => (s.id === editingSupplier.id ? { ...supplier, id: editingSupplier.id } : s)))
+    } else {
+      setSuppliers([...suppliers, { ...supplier, id: Date.now().toString() }])
+    }
+    setShowAddEditModal(false)
+    setEditingSupplier(null)
+  }
+
+  return (
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-8">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-4xl font-bold text-foreground">Suppliers</h1>
+          <p className="text-muted-foreground mt-1">Manage your supplier relationships</p>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}>
+          <Button onClick={handleAddSupplier} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add Supplier
+          </Button>
+        </motion.div>
+      </div>
+
+      {/* Search Bar */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <Card className="p-4 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search suppliers by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+            />
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Suppliers Table */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <Card className="overflow-hidden">
+          {filteredSuppliers.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Supplier Name</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Contact Person</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Email</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Phone</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <AnimatePresence mode="popLayout">
+                    {filteredSuppliers.map((supplier, index) => (
+                      <motion.tr
+                        key={supplier.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="border-b border-border hover:bg-accent/30 transition-colors"
+                      >
+                        <td className="px-6 py-4 font-medium text-foreground">{supplier.name}</td>
+                        <td className="px-6 py-4 text-muted-foreground">{supplier.contactPerson}</td>
+                        <td className="px-6 py-4 text-muted-foreground">{supplier.email}</td>
+                        <td className="px-6 py-4 text-muted-foreground">{supplier.phone}</td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                              supplier.status === "Active"
+                                ? "bg-chart-2/20 text-chart-2"
+                                : "bg-muted/50 text-muted-foreground"
+                            }`}
+                          >
+                            {supplier.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleEdit(supplier)}
+                              className="p-2 hover:bg-accent rounded-lg transition-colors"
+                            >
+                              <Pencil className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleDelete(supplier)}
+                              className="p-2 hover:bg-destructive/20 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </motion.button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
+              <div className="text-muted-foreground text-lg mb-2">No suppliers found</div>
+              <p className="text-sm text-muted-foreground">
+                {searchQuery ? "Try adjusting your search" : "Add your first supplier to get started"}
+              </p>
+            </motion.div>
+          )}
+        </Card>
+      </motion.div>
+
+      {/* Modals */}
+      <AddEditSupplierModal
+        isOpen={showAddEditModal}
+        onClose={() => {
+          setShowAddEditModal(false)
+          setEditingSupplier(null)
+        }}
+        onSave={handleSaveSupplier}
+        supplier={editingSupplier}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={!!deletingSupplier}
+        onClose={() => setDeletingSupplier(null)}
+        onConfirm={confirmDelete}
+        productName={deletingSupplier?.name || ""}
+        itemType="supplier"
+      />
+    </div>
+  )
+}

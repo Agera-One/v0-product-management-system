@@ -1,7 +1,7 @@
 "use client"
 
 import { type ReactNode, useState } from "react"
-import { LayoutDashboard, Package, Settings, Menu, X } from "lucide-react"
+import { LayoutDashboard, Package, Settings, Menu, X, Truck, FolderOpen, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
@@ -9,6 +9,9 @@ import { motion, AnimatePresence } from "framer-motion"
 const navigationItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Products", href: "/dashboard/products", icon: Package },
+  { name: "Suppliers", href: "/dashboard/suppliers", icon: Truck },
+  { name: "Categories", href: "/dashboard/categories", icon: FolderOpen },
+  { name: "Selling", href: "/dashboard/selling", icon: ShoppingCart },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 

@@ -9,9 +9,10 @@ type Props = {
   onClose: () => void
   onConfirm: () => void
   productName: string
+  itemType?: string // Added optional itemType prop to support different entity types
 }
 
-export function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productName }: Props) {
+export function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productName, itemType = "product" }: Props) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -50,9 +51,11 @@ export function DeleteConfirmationModal({ isOpen, onClose, onConfirm, productNam
                 </div>
 
                 <div className="flex-1">
-                  <h2 className="text-xl font-bold text-foreground mb-2">Delete Product</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-2">
+                    Delete {itemType.charAt(0).toUpperCase() + itemType.slice(1)}
+                  </h2>
                   <p className="text-muted-foreground mb-1">
-                    {"Are you sure you want to delete "}
+                    {`Are you sure you want to delete `}
                     <span className="font-semibold text-foreground">{productName}</span>?
                   </p>
                   <p className="text-sm text-destructive">This action cannot be undone.</p>
