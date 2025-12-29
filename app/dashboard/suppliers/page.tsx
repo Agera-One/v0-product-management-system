@@ -2,11 +2,23 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus, Search, Pencil, Trash2 } from "lucide-react"
+import { Plus, Search, Pencil, Trash2, Users, CheckCircle, XCircle, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AddEditSupplierModal } from "@/components/add-edit-supplier-modal"
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal"
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts"
 
 type Supplier = {
   id: string
@@ -52,6 +64,22 @@ const initialSuppliers: Supplier[] = [
   },
 ]
 
+const performanceData = [
+  { month: "Jan", deliveries: 45, rating: 4.2 },
+  { month: "Feb", deliveries: 52, rating: 4.5 },
+  { month: "Mar", deliveries: 48, rating: 4.3 },
+  { month: "Apr", deliveries: 61, rating: 4.6 },
+  { month: "May", deliveries: 55, rating: 4.4 },
+  { month: "Jun", deliveries: 68, rating: 4.7 },
+]
+
+const supplierOrdersData = [
+  { name: "TechHub", orders: 145 },
+  { name: "Global Elec", orders: 132 },
+  { name: "Premium", orders: 98 },
+  { name: "Accessory M", orders: 116 },
+]
+
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers)
   const [searchQuery, setSearchQuery] = useState("")
@@ -94,6 +122,10 @@ export default function SuppliersPage() {
     setEditingSupplier(null)
   }
 
+  const totalSuppliers = suppliers.length
+  const activeSuppliers = suppliers.filter((s) => s.status === "Active").length
+  const inactiveSuppliers = suppliers.filter((s) => s.status === "Inactive").length
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
@@ -110,8 +142,100 @@ export default function SuppliersPage() {
         </motion.div>
       </div>
 
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="grid grid-cols-4 gap-6 mb-8"
+      >
+        {[
+          { name: "Total Suppliers", value: totalSuppliers.toString(), icon: Users, color: "text-chart-1" },
+          { name: "Active", value: activeSuppliers.toString(), icon: CheckCircle, color: "text-chart-2" },
+          { name: "Inactive", value: inactiveSuppliers.toString(), icon: XCircle, color: "text-muted-foreground" },
+          { name: "Avg Performance", value: "4.5/5", icon: TrendingUp, color: "text-chart-4" },
+        ].map((stat, index) => {
+          const Icon = stat.icon
+          return (
+            <motion.div
+              key={stat.name}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 + index * 0.05 }}
+            >
+              <Card className="p-6 relative overflow-hidden group">
+                <motion.div whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground font-medium">{stat.name}</p>
+                      <p className="text-3xl font-bold text-foreground mt-2">{stat.value}</p>
+                    </div>
+                    <div className={`p-3 rounded-xl bg-accent/50 ${stat.color}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                  </div>
+                </motion.div>
+                <motion.div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              </Card>
+            </motion.div>
+          )
+        })}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="grid grid-cols-2 gap-6 mb-8"
+      >
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Supplier Performance Trend</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={performanceData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="deliveries"
+                stroke="hsl(var(--chart-1))"
+                strokeWidth={2}
+                name="Deliveries"
+              />
+              <Line type="monotone" dataKey="rating" stroke="hsl(var(--chart-2))" strokeWidth={2} name="Rating" />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Orders by Supplier</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={supplierOrdersData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Bar dataKey="orders" fill="hsl(var(--chart-2))" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      </motion.div>
+
       {/* Search Bar */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <Card className="p-4 mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -127,7 +251,7 @@ export default function SuppliersPage() {
       </motion.div>
 
       {/* Suppliers Table */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
         <Card className="overflow-hidden">
           {filteredSuppliers.length > 0 ? (
             <div className="overflow-x-auto">

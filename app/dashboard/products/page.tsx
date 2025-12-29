@@ -2,12 +2,25 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus, Search, Eye, Pencil, Trash2 } from "lucide-react"
+import { Plus, Search, Eye, Pencil, Trash2, Package, TrendingUp, AlertTriangle, DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ProductDetailModal } from "@/components/product-detail-modal"
 import { AddEditProductPanel } from "@/components/add-edit-product-panel"
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal"
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts"
 
 type Product = {
   id: string
@@ -59,6 +72,20 @@ const initialProducts: Product[] = [
     stock: 12,
     image: "/classic-webcam.png",
   },
+]
+
+const categoryData = [
+  { name: "Electronics", value: 3, fill: "hsl(var(--chart-1))" },
+  { name: "Accessories", value: 2, fill: "hsl(var(--chart-2))" },
+]
+
+const stockData = [
+  { month: "Jan", stock: 140 },
+  { month: "Feb", stock: 150 },
+  { month: "Mar", stock: 145 },
+  { month: "Apr", stock: 138 },
+  { month: "May", stock: 142 },
+  { month: "Jun", stock: 157 },
 ]
 
 export default function ProductsPage() {
@@ -113,6 +140,11 @@ export default function ProductsPage() {
     setEditingProduct(null)
   }
 
+  const totalProducts = products.length
+  const totalStock = products.reduce((sum, p) => sum + p.stock, 0)
+  const outOfStock = products.filter((p) => p.stock === 0).length
+  const totalValue = products.reduce((sum, p) => sum + p.price * p.stock, 0)
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
@@ -129,8 +161,107 @@ export default function ProductsPage() {
         </motion.div>
       </div>
 
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="grid grid-cols-4 gap-6 mb-8"
+      >
+        {[
+          { name: "Total Products", value: totalProducts.toString(), icon: Package, color: "text-chart-1" },
+          { name: "Total Stock", value: totalStock.toString(), icon: TrendingUp, color: "text-chart-2" },
+          { name: "Out of Stock", value: outOfStock.toString(), icon: AlertTriangle, color: "text-destructive" },
+          {
+            name: "Inventory Value",
+            value: `$${totalValue.toFixed(2)}`,
+            icon: DollarSign,
+            color: "text-chart-4",
+          },
+        ].map((stat, index) => {
+          const Icon = stat.icon
+          return (
+            <motion.div
+              key={stat.name}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 + index * 0.05 }}
+            >
+              <Card className="p-6 relative overflow-hidden group">
+                <motion.div whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground font-medium">{stat.name}</p>
+                      <p className="text-3xl font-bold text-foreground mt-2">{stat.value}</p>
+                    </div>
+                    <div className={`p-3 rounded-xl bg-accent/50 ${stat.color}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                  </div>
+                </motion.div>
+                <motion.div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              </Card>
+            </motion.div>
+          )
+        })}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="grid grid-cols-2 gap-6 mb-8"
+      >
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Products by Category</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={categoryData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={90}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {categoryData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Stock Trend (Last 6 Months)</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={stockData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Bar dataKey="stock" fill="hsl(var(--chart-1))" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      </motion.div>
+
       {/* Search Bar */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <Card className="p-4 mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -146,7 +277,7 @@ export default function ProductsPage() {
       </motion.div>
 
       {/* Products Table */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">

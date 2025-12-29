@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { Package, TrendingUp, AlertTriangle, DollarSign } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 const stats = [
   {
@@ -58,6 +59,15 @@ const itemVariants = {
   },
 }
 
+const revenueData = [
+  { month: "Jan", revenue: 28000 },
+  { month: "Feb", revenue: 32000 },
+  { month: "Mar", revenue: 35000 },
+  { month: "Apr", revenue: 38000 },
+  { month: "May", revenue: 42000 },
+  { month: "Jun", revenue: 48392 },
+]
+
 export default function DashboardPage() {
   return (
     <div className="p-8">
@@ -106,11 +116,52 @@ export default function DashboardPage() {
         })}
       </motion.div>
 
-      {/* Recent Activity */}
+      {/* Revenue Trend Chart */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
+        className="mt-8"
+      >
+        <Card className="p-6">
+          <h2 className="text-xl font-bold text-foreground mb-6">Revenue Trend</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={revenueData}>
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+                labelStyle={{ color: "hsl(var(--foreground))" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="hsl(var(--chart-1))"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorRevenue)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+      </motion.div>
+
+      {/* Recent Activity */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
         className="mt-8"
       >
         <Card className="p-6">
@@ -125,7 +176,7 @@ export default function DashboardPage() {
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + index * 0.1 }}
+                transition={{ delay: 0.6 + index * 0.1 }}
                 className="flex items-center justify-between p-4 bg-accent/30 rounded-lg hover:bg-accent/50 transition-colors"
               >
                 <div>
