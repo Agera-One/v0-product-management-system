@@ -214,7 +214,7 @@ const ordersChartOptions = {
   },
 }
 
-export default function SuppliersPage() {
+export default function Suppliers() {
   const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers)
   const [showAddEditModal, setShowAddEditModal] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)

@@ -61,7 +61,7 @@ const initialTransactions: Transaction[] = [
   },
 ]
 
-export default function SellingPage() {
+export default function Selling() {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions)
   const [selectedProduct, setSelectedProduct] = useState("")
   const [quantity, setQuantity] = useState(1)

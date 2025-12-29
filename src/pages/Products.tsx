@@ -151,7 +151,7 @@ const stockChartOptions = {
   },
 }
 
-export default function ProductsPage() {
+export default function Products() {
   const [products, setProducts] = useState<Product[]>(initialProducts)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)

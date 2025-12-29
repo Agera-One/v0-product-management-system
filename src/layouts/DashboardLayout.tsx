@@ -1,11 +1,9 @@
 "use client"
 
-import { type ReactNode, useState } from "react"
+import { useState } from "react"
 import { LayoutDashboard, Package, Settings, Menu, X, Truck, ShoppingCart } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link, useLocation, Outlet } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { Suspense } from "react"
 
 const navigationItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -15,8 +13,8 @@ const navigationItems = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
+export default function DashboardLayout() {
+  const location = useLocation()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   return (
@@ -42,7 +40,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <nav className="flex-1 p-4 space-y-2">
           {navigationItems.map((item, index) => {
             const Icon = item.icon
-            const isActive = pathname === item.href
+            const isActive = location.pathname === item.href
 
             return (
               <motion.div
@@ -51,7 +49,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Link href={item.href}>
+                <Link to={item.href}>
                   <motion.div
                     whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
@@ -108,19 +106,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto">
-          <Suspense fallback={<div className="flex items-center justify-center h-full">Loading...</div>}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={pathname}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.2 }}
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
-          </Suspense>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </div>
