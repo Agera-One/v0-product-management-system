@@ -3,7 +3,20 @@
 import { motion } from "framer-motion"
 import { Package, TrendingUp, AlertTriangle, DollarSign } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { Line } from "react-chartjs-2"
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js"
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)
 
 const stats = [
   {
@@ -59,14 +72,65 @@ const itemVariants = {
   },
 }
 
-const revenueData = [
-  { month: "Jan", revenue: 28000 },
-  { month: "Feb", revenue: 32000 },
-  { month: "Mar", revenue: 35000 },
-  { month: "Apr", revenue: 38000 },
-  { month: "May", revenue: 42000 },
-  { month: "Jun", revenue: 48392 },
-]
+const revenueChartData = {
+  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+  datasets: [
+    {
+      label: "Revenue",
+      data: [28000, 32000, 35000, 38000, 42000, 48392],
+      borderColor: "rgb(147, 51, 234)",
+      backgroundColor: "rgba(147, 51, 234, 0.1)",
+      fill: true,
+      tension: 0.4,
+      borderWidth: 2,
+      pointBackgroundColor: "rgb(147, 51, 234)",
+      pointBorderColor: "#fff",
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+    },
+  ],
+}
+
+const revenueChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false,
+    },
+    tooltip: {
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      padding: 12,
+      titleColor: "#fff",
+      bodyColor: "#fff",
+      borderColor: "rgba(147, 51, 234, 0.5)",
+      borderWidth: 1,
+      callbacks: {
+        label: (context: any) => "Revenue: $" + context.parsed.y.toLocaleString(),
+      },
+    },
+  },
+  scales: {
+    x: {
+      grid: {
+        color: "rgba(255, 255, 255, 0.05)",
+      },
+      ticks: {
+        color: "rgba(255, 255, 255, 0.6)",
+      },
+    },
+    y: {
+      grid: {
+        color: "rgba(255, 255, 255, 0.05)",
+      },
+      ticks: {
+        color: "rgba(255, 255, 255, 0.6)",
+        callback: (value: any) => "$" + (value / 1000).toFixed(0) + "k",
+      },
+    },
+  },
+}
 
 export default function DashboardPage() {
   return (
@@ -125,35 +189,9 @@ export default function DashboardPage() {
       >
         <Card className="p-6">
           <h2 className="text-xl font-bold text-foreground mb-6">Revenue Trend</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={revenueData}>
-              <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-                labelStyle={{ color: "hsl(var(--foreground))" }}
-              />
-              <Area
-                type="monotone"
-                dataKey="revenue"
-                stroke="hsl(var(--chart-1))"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorRevenue)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="h-[300px]">
+            <Line data={revenueChartData} options={revenueChartOptions} />
+          </div>
         </Card>
       </motion.div>
 

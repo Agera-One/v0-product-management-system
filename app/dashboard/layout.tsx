@@ -5,6 +5,7 @@ import { LayoutDashboard, Package, Settings, Menu, X, Truck, ShoppingCart } from
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import { Suspense } from "react"
 
 const navigationItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -86,38 +87,40 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? "ml-[280px]" : "ml-0"}`}>
         {/* Header */}
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6">
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 hover:bg-accent rounded-lg transition-colors"
-          >
-            {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-
           <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground">
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </div>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
+            >
+              {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+
+          <div className="text-sm text-muted-foreground">
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
           </div>
         </header>
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          <Suspense fallback={<div className="flex items-center justify-center h-full">Loading...</div>}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </Suspense>
         </main>
       </div>
     </div>

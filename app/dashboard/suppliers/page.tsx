@@ -2,23 +2,25 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus, Search, Pencil, Trash2, Users, CheckCircle, XCircle, TrendingUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Pencil, Trash2, Users, CheckCircle, XCircle, TrendingUp, Search, Plus } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { AddEditSupplierModal } from "@/components/add-edit-supplier-modal"
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal"
+import { Line, Bar } from "react-chartjs-2"
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
   Tooltip,
-  ResponsiveContainer,
   Legend,
-} from "recharts"
+} from "chart.js"
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
 
 type Supplier = {
   id: string
@@ -64,28 +66,160 @@ const initialSuppliers: Supplier[] = [
   },
 ]
 
-const performanceData = [
-  { month: "Jan", deliveries: 45, rating: 4.2 },
-  { month: "Feb", deliveries: 52, rating: 4.5 },
-  { month: "Mar", deliveries: 48, rating: 4.3 },
-  { month: "Apr", deliveries: 61, rating: 4.6 },
-  { month: "May", deliveries: 55, rating: 4.4 },
-  { month: "Jun", deliveries: 68, rating: 4.7 },
-]
+const performanceChartData = {
+  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+  datasets: [
+    {
+      label: "Deliveries",
+      data: [45, 52, 48, 61, 55, 68],
+      borderColor: "rgb(239, 68, 68)",
+      backgroundColor: "rgba(239, 68, 68, 0.1)",
+      tension: 0.4,
+      borderWidth: 2,
+      pointBackgroundColor: "rgb(239, 68, 68)",
+      pointBorderColor: "#fff",
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      yAxisID: "y",
+    },
+    {
+      label: "Rating",
+      data: [4.2, 4.5, 4.3, 4.6, 4.4, 4.7],
+      borderColor: "rgb(34, 197, 94)",
+      backgroundColor: "rgba(34, 197, 94, 0.1)",
+      tension: 0.4,
+      borderWidth: 2,
+      pointBackgroundColor: "rgb(34, 197, 94)",
+      pointBorderColor: "#fff",
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      yAxisID: "y1",
+    },
+  ],
+}
 
-const supplierOrdersData = [
-  { name: "TechHub", orders: 145 },
-  { name: "Global Elec", orders: 132 },
-  { name: "Premium", orders: 98 },
-  { name: "Accessory M", orders: 116 },
-]
+const performanceChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: {
+    mode: "index" as const,
+    intersect: false,
+  },
+  plugins: {
+    legend: {
+      position: "bottom" as const,
+      labels: {
+        color: "rgba(255, 255, 255, 0.8)",
+        padding: 15,
+        font: {
+          size: 12,
+        },
+      },
+    },
+    tooltip: {
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      padding: 12,
+      titleColor: "#fff",
+      bodyColor: "#fff",
+    },
+  },
+  scales: {
+    x: {
+      grid: {
+        color: "rgba(255, 255, 255, 0.05)",
+      },
+      ticks: {
+        color: "rgba(255, 255, 255, 0.6)",
+      },
+    },
+    y: {
+      type: "linear" as const,
+      display: true,
+      position: "left" as const,
+      grid: {
+        color: "rgba(255, 255, 255, 0.05)",
+      },
+      ticks: {
+        color: "rgba(255, 255, 255, 0.6)",
+      },
+    },
+    y1: {
+      type: "linear" as const,
+      display: true,
+      position: "right" as const,
+      grid: {
+        drawOnChartArea: false,
+      },
+      ticks: {
+        color: "rgba(255, 255, 255, 0.6)",
+      },
+      min: 0,
+      max: 5,
+    },
+  },
+}
+
+const ordersChartData = {
+  labels: ["TechHub", "Global Elec", "Premium", "Accessory M"],
+  datasets: [
+    {
+      label: "Orders",
+      data: [145, 132, 98, 116],
+      backgroundColor: [
+        "rgba(251, 146, 60, 0.8)",
+        "rgba(14, 165, 233, 0.8)",
+        "rgba(236, 72, 153, 0.8)",
+        "rgba(132, 204, 22, 0.8)",
+      ],
+      borderColor: ["rgb(251, 146, 60)", "rgb(14, 165, 233)", "rgb(236, 72, 153)", "rgb(132, 204, 22)"],
+      borderWidth: 2,
+      borderRadius: 8,
+    },
+  ],
+}
+
+const ordersChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false,
+    },
+    tooltip: {
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      padding: 12,
+      titleColor: "#fff",
+      bodyColor: "#fff",
+    },
+  },
+  scales: {
+    x: {
+      grid: {
+        color: "rgba(255, 255, 255, 0.05)",
+      },
+      ticks: {
+        color: "rgba(255, 255, 255, 0.6)",
+      },
+    },
+    y: {
+      grid: {
+        color: "rgba(255, 255, 255, 0.05)",
+      },
+      ticks: {
+        color: "rgba(255, 255, 255, 0.6)",
+      },
+    },
+  },
+}
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers)
-  const [searchQuery, setSearchQuery] = useState("")
   const [showAddEditModal, setShowAddEditModal] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
   const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
 
   const filteredSuppliers = suppliers.filter((supplier) =>
     supplier.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -128,19 +262,10 @@ export default function SuppliersPage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-4xl font-bold text-foreground">Suppliers</h1>
-          <p className="text-muted-foreground mt-1">Manage your supplier relationships</p>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}>
-          <Button onClick={handleAddSupplier} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Supplier
-          </Button>
-        </motion.div>
-      </div>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+        <h1 className="text-4xl font-bold text-foreground">Suppliers</h1>
+        <p className="text-muted-foreground mt-1">Manage your supplier relationships</p>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -189,70 +314,40 @@ export default function SuppliersPage() {
       >
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Supplier Performance Trend</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={performanceData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="deliveries"
-                stroke="hsl(var(--chart-1))"
-                strokeWidth={2}
-                name="Deliveries"
-              />
-              <Line type="monotone" dataKey="rating" stroke="hsl(var(--chart-2))" strokeWidth={2} name="Rating" />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="h-[250px]">
+            <Line data={performanceChartData} options={performanceChartOptions} />
+          </div>
         </Card>
 
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Orders by Supplier</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={supplierOrdersData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Bar dataKey="orders" fill="hsl(var(--chart-2))" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      </motion.div>
-
-      {/* Search Bar */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-        <Card className="p-4 mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search suppliers by name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
-            />
+          <div className="h-[250px]">
+            <Bar data={ordersChartData} options={ordersChartOptions} />
           </div>
         </Card>
       </motion.div>
 
-      {/* Suppliers Table */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <Card className="overflow-hidden">
+          <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between gap-4">
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search suppliers by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-background/60 border border-input hover:border-primary/50 focus:border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground text-sm transition-all"
+                />
+              </div>
+            </div>
+            <Button onClick={handleAddSupplier} size="sm" className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Supplier
+            </Button>
+          </div>
+
           {filteredSuppliers.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -329,7 +424,6 @@ export default function SuppliersPage() {
         </Card>
       </motion.div>
 
-      {/* Modals */}
       <AddEditSupplierModal
         isOpen={showAddEditModal}
         onClose={() => {

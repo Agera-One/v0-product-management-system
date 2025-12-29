@@ -2,25 +2,16 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus, Search, Eye, Pencil, Trash2, Package, TrendingUp, AlertTriangle, DollarSign } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Eye, Pencil, Trash2, Package, TrendingUp, AlertTriangle, DollarSign, Search, Plus } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { ProductDetailModal } from "@/components/product-detail-modal"
 import { AddEditProductPanel } from "@/components/add-edit-product-panel"
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal"
-import {
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts"
+import { Doughnut, Bar } from "react-chartjs-2"
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from "chart.js"
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend)
 
 type Product = {
   id: string
@@ -74,29 +65,100 @@ const initialProducts: Product[] = [
   },
 ]
 
-const categoryData = [
-  { name: "Electronics", value: 3, fill: "hsl(var(--chart-1))" },
-  { name: "Accessories", value: 2, fill: "hsl(var(--chart-2))" },
-]
+const categoryChartData = {
+  labels: ["Electronics", "Accessories"],
+  datasets: [
+    {
+      label: "Products",
+      data: [3, 2],
+      backgroundColor: ["rgba(59, 130, 246, 0.8)", "rgba(168, 85, 247, 0.8)"],
+      borderColor: ["rgb(59, 130, 246)", "rgb(168, 85, 247)"],
+      borderWidth: 2,
+    },
+  ],
+}
 
-const stockData = [
-  { month: "Jan", stock: 140 },
-  { month: "Feb", stock: 150 },
-  { month: "Mar", stock: 145 },
-  { month: "Apr", stock: 138 },
-  { month: "May", stock: 142 },
-  { month: "Jun", stock: 157 },
-]
+const categoryChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: "bottom" as const,
+      labels: {
+        color: "rgba(255, 255, 255, 0.8)",
+        padding: 15,
+        font: {
+          size: 12,
+        },
+      },
+    },
+    tooltip: {
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      padding: 12,
+      titleColor: "#fff",
+      bodyColor: "#fff",
+    },
+  },
+}
+
+const stockChartData = {
+  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+  datasets: [
+    {
+      label: "Total Stock",
+      data: [140, 150, 145, 138, 142, 157],
+      backgroundColor: "rgba(16, 185, 129, 0.8)",
+      borderColor: "rgb(16, 185, 129)",
+      borderWidth: 2,
+      borderRadius: 8,
+    },
+  ],
+}
+
+const stockChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false,
+    },
+    tooltip: {
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      padding: 12,
+      titleColor: "#fff",
+      bodyColor: "#fff",
+      borderColor: "rgba(16, 185, 129, 0.5)",
+      borderWidth: 1,
+    },
+  },
+  scales: {
+    x: {
+      grid: {
+        color: "rgba(255, 255, 255, 0.05)",
+      },
+      ticks: {
+        color: "rgba(255, 255, 255, 0.6)",
+      },
+    },
+    y: {
+      grid: {
+        color: "rgba(255, 255, 255, 0.05)",
+      },
+      ticks: {
+        color: "rgba(255, 255, 255, 0.6)",
+      },
+    },
+  },
+}
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>(initialProducts)
-  const [searchQuery, setSearchQuery] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [showAddEditPanel, setShowAddEditPanel] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
   const filteredProducts = products.filter(
     (product) =>
@@ -147,19 +209,10 @@ export default function ProductsPage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-4xl font-bold text-foreground">Products</h1>
-          <p className="text-muted-foreground mt-1">Manage your product inventory</p>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}>
-          <Button onClick={handleAddProduct} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Product
-          </Button>
-        </motion.div>
-      </div>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+        <h1 className="text-4xl font-bold text-foreground">Products</h1>
+        <p className="text-muted-foreground mt-1">Manage your product inventory</p>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -213,72 +266,40 @@ export default function ProductsPage() {
       >
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Products by Category</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={90}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="h-[250px] flex items-center justify-center">
+            <Doughnut data={categoryChartData} options={categoryChartOptions} />
+          </div>
         </Card>
 
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Stock Trend (Last 6 Months)</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={stockData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Bar dataKey="stock" fill="hsl(var(--chart-1))" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      </motion.div>
-
-      {/* Search Bar */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-        <Card className="p-4 mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search products by name or category..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
-            />
+          <div className="h-[250px]">
+            <Bar data={stockChartData} options={stockChartOptions} />
           </div>
         </Card>
       </motion.div>
 
-      {/* Products Table */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <Card className="overflow-hidden">
+          <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between gap-4">
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search products by name or category..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-background/60 border border-input hover:border-primary/50 focus:border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground text-sm transition-all"
+                />
+              </div>
+            </div>
+            <Button onClick={handleAddProduct} size="sm" className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Product
+            </Button>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50 border-b border-border">
@@ -358,7 +379,6 @@ export default function ProductsPage() {
                 </AnimatePresence>
               </tbody>
             </table>
-
             {filteredProducts.length === 0 && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -372,7 +392,6 @@ export default function ProductsPage() {
         </Card>
       </motion.div>
 
-      {/* Modals */}
       <ProductDetailModal
         product={selectedProduct}
         isOpen={showDetailModal}
